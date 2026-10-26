@@ -6,4 +6,4 @@
 
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
-API KEY : "dial-voif1rryxihwbabk3r6gbov9oje"
+API KEY : ""
