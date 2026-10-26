@@ -1,0 +1,411 @@
+# Canonical P&C bordereaux schema - 52 bordereaux fields + 6 treaty figures.
+# Source: "Initial provided Info/Data Dictionary_P&C premium.docx".
+# Loaded by `bordereaux.schemas.loader` into canonical_schemas.definition.
+id: bordereaux-pc-v1
+name: Bordereaux Processing Accelerator - P&C Premium Schema
+# Bump on ANY change to this file: each version is stored as an immutable snapshot
+# (see schemas/loader.py) and an edit under an existing version is rejected.
+# 1.1.0 - semantic synonyms added (Risk Insured, Placement Intermediary, Total Insured Value, Ceding Fee, ...)
+version: "1.1.0"
+standard: CUSTOM
+fields:
+  # Group A - Transaction Identity
+  - name: line_id
+    display_name: Line ID
+    type: INTEGER
+    required: mandatory
+    category: TRANSACTION_IDENTITY
+    aliases: [Line, Line No, Line Number, "Line #", Row, Row No, Row Number, "Row #", Serial, Serial No, Sr No, "Sr. No.", S.No, S/N, Seq, Seq No, Sequence, Sequence No, Index, Idx, Record No, Entry No, "#", No, Nr]
+  - name: transaction_ref
+    display_name: Transaction Number
+    type: STRING
+    required: mandatory
+    category: TRANSACTION_IDENTITY
+    aliases: [Transaction No, Transaction Number, Transaction Ref, Transaction Reference, Transaction ID, Txn No, Txn Ref, Txn ID, Trans No, Trans Ref, Trans ID, Trn No, Trn Ref, Movement No, Movement Ref, Movement ID, Entry Ref, Booking No, Booking Ref, Record Ref, Event No, Event Ref]
+  - name: transaction_type
+    display_name: Trans Type
+    type: ENUM
+    required: mandatory
+    category: TRANSACTION_IDENTITY
+    allowed_values: [New, Renewal, Endorsement, MTA, Cancellation]
+    aliases: [Type, Trans Type, Transaction Type, Txn Type, Trn Type, Movement, Movement Type, Mvmt, Mvmt Type, Entry Type, Transaction Category, Business Type, Policy Movement, Policy Type, Action, Action Type, Operation, Operation Type, Nature]
+  - name: year_of_account
+    display_name: Year of Account
+    type: INTEGER
+    required: mandatory
+    category: TRANSACTION_IDENTITY
+    aliases: [YOA, "Y.O.A.", Year of Account, Underwriting Year, UW Year, UWY, "U/W Year", Writing Year, Account Year, Accounting Year, Treaty Year, Contract Year, Year, Yr, Policy Year]
+  - name: section
+    display_name: Section
+    type: STRING
+    required: optional
+    category: TRANSACTION_IDENTITY
+    aliases: [Sec, Section, Section Code, Section No, Section Number, Treaty Section, Contract Section, Sub-Section, Subsection, Part, Sub Part, Layer, Layer Code, Tier, Band, Category]
+
+  # Group B - Policy & Market References
+  - name: umr
+    display_name: UMR
+    type: STRING
+    required: mandatory
+    category: POLICY_MARKET_REFERENCE
+    aliases: [UMR, UMR No, UMR Number, UMR Ref, UMR Reference, Unique Market Reference, Unique Market Ref, Market Reference, Market Ref, Contract Reference, Contract Ref, Contract No, Contract Number, Contract ID, Slip Reference, Slip Ref, Slip No, Slip Number, Placement Ref, Placement Reference, Placement No, Treaty Reference, Treaty Ref]
+  - name: risk_code
+    display_name: Risk Code
+    type: STRING
+    required: mandatory
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Risk Code, RC, LRC, "Lloyd's Risk Code", Lloyds Risk Code, Lloyd Risk Code, Class Code, Class of Business Code, COB Code, Business Code, Product Code, Line Code, Peril Code, Category Code, Classification Code, Statutory Code]
+  - name: class_of_business
+    display_name: Type of Insurance
+    type: STRING
+    required: mandatory
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Type of Insurance, Insurance Type, Class of Business, Class, COB, Line of Business, LOB, Line, Product, Product Type, Product Line, Business Line, Insurance Class, Cover Type, Coverage Type, Risk Type, Risk Class, Branch, Category, Sub-Class]
+  - name: coverholder_name
+    display_name: Coverholder / Cedant
+    type: STRING
+    required: mandatory
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Coverholder, Cover Holder, CH, CH Name, Cedant, Cedent, Ceding Company, Ceding Insurer, Ceding Party, Reinsured, Reinsured Name, Original Insurer, MGA, MGA Name, Managing General Agent, Managing Agent, Delegated Authority, DA, Agent, Agent Name, Agency, Agency Name, Underwriting Agent, Binder Holder, Binding Authority]
+  - name: producing_broker
+    display_name: Producing Broker
+    type: STRING
+    required: optional
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Producing Broker, Prod Broker, Producer, Producer Name, Producing Agent, Originating Broker, Originating Agent, Originator, Retail Broker, Local Broker, Introducing Broker, Source Broker, Client Broker, Front Broker, First Broker]
+  - name: placing_broker
+    display_name: Placing Broker
+    type: STRING
+    required: optional
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Placing Broker, Place Broker, Placement Broker, Placement Intermediary, Market Broker, Wholesale Broker, London Broker, Lead Broker, Settlement Broker, Intermediary, Intermediary Name, Broker, Broker Name, Reinsurance Broker, RI Broker]
+  - name: policy_ref
+    display_name: Policy Ref
+    type: STRING
+    required: mandatory
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Policy Ref, Policy Reference, Policy No, Policy Number, Pol No, Pol Ref, Pol Number, "Pol#", Policy ID, Policy Code, Original Policy No, Original Policy Reference, Underlying Policy No, Underlying Policy Ref, Master Policy No, Risk Reference, Risk Ref, Risk No, Risk Number, Insurance Ref, Insurance Reference, Policy Identifier]
+  - name: certificate_ref
+    display_name: Certificate No
+    type: STRING
+    required: conditional
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Certificate No, Certificate Number, Cert No, Cert Number, Cert Ref, Certificate Reference, Certificate ID, Cert ID, Cover Note No, Cover Note Number, Cover Note Ref, CN No, Binder Cert, Binder Certificate, Attachment No, Schedule No]
+  - name: endorsement_ref
+    display_name: Endorsement / MTA No
+    type: STRING
+    required: conditional
+    category: POLICY_MARKET_REFERENCE
+    aliases: [Endorsement No, Endorsement Number, Endorsement Ref, Endorsement Reference, End No, End Ref, Endt No, Endt Ref, MTA No, MTA Number, MTA Ref, MTA Reference, Mid-Term Adjustment No, Mid Term Adjustment, Amendment No, Amendment Number, Amendment Ref, Addendum No, Addendum Ref, Variation No, Variation Ref, Change No, Change Ref, Adjustment No, Adjustment Ref]
+
+  # Group C - Insured & Risk Details
+  - name: insured_name
+    display_name: Insured Name
+    type: STRING
+    required: mandatory
+    category: INSURED_RISK_DETAILS
+    aliases: [Insured, Insured Name, Name of Insured, Assured, Assured Name, Named Insured, Policyholder, Policy Holder, Policyholder Name, Client, Client Name, Customer, Customer Name, Account Name, Account Holder, Risk Name, Risk Insured, Original Insured, Beneficiary, Party Insured]
+  - name: insured_address
+    display_name: Insured Address
+    type: STRING
+    required: optional
+    category: INSURED_RISK_DETAILS
+    aliases: [Address, Insured Address, Address of Insured, Insured Addr, Policyholder Address, Client Address, Customer Address, Mailing Address, Billing Address, Postal Address, Street Address, Correspondence Address, Registered Address]
+  - name: insured_country
+    display_name: Insured Country
+    type: COUNTRY_CODE
+    required: mandatory
+    category: INSURED_RISK_DETAILS
+    aliases: [Country, Insured Country, Country of Insured, Insured Ctry, Cntry, Ctry, Nation, Nationality, Domicile, Country of Domicile, Country of Residence, Residence Country, Home Country, Country Code, ISO Country, Nation Code, Country Name]
+  - name: risk_postcode
+    display_name: Risk Postcode
+    type: STRING
+    required: optional
+    category: INSURED_RISK_DETAILS
+    aliases: [Postcode, Post Code, Postal Code, ZIP, Zip Code, Risk Postcode, Risk Zip, Risk Postal Code, Location Postcode, Location Zip, Location Postal Code, Property Postcode, Site Postcode, Risk Location Postcode, Address Postcode]
+  - name: risk_country
+    display_name: Risk Location Country
+    type: COUNTRY_CODE
+    required: mandatory
+    category: INSURED_RISK_DETAILS
+    aliases: [Risk Country, Risk Location Country, Risk Ctry, Location Country, Country of Risk, Country of Location, Property Country, Site Country, Situs Country, Territory, Territory Code, Jurisdiction, Geography, Geographical Area]
+  - name: occupancy
+    display_name: Occupancy / Trade
+    type: STRING
+    required: optional
+    category: INSURED_RISK_DETAILS
+    aliases: [Occupancy, Trade, Business, Occupation, Business Activity, Nature of Business, Business Description, Industry, Industry Type, Industry Sector, Sector, Activity, Trade Description, Use, Building Use, Property Use, Business Type, SIC, SIC Code, NACE Code]
+
+  # Group D - Dates
+  - name: inception_date
+    display_name: Inception Date
+    type: DATE
+    required: mandatory
+    category: DATES
+    aliases: [Incep, Inception, Inception Date, Incep Dt, Incep Date, Policy Start, Policy Start Date, Start Date, Effective Date, Eff Date, Eff Dt, From Date, Date From, Risk Attaches, Risk Attachment, Attachment Date, Cover Start, Cover From, Period From]
+  - name: expiry_date
+    display_name: Expiry Date
+    type: DATE
+    required: mandatory
+    category: DATES
+    aliases: [Exp, Expiry, Expiry Date, Exp Dt, Exp Date, Expiration, Expiration Date, Policy End, Policy End Date, End Date, To Date, Date To, Risk Expires, Expiration of Cover, Cover End, Cover To, Period To, Renewal Date, Natural Expiry, Expiry Dt, Expiry Dt.]
+  - name: transaction_effective_date
+    display_name: Transaction Effective Date
+    type: DATE
+    required: mandatory
+    category: DATES
+    aliases: [Trans Effective Date, Transaction Effective Date, Trans Eff Dt, Trans Eff Date, Txn Eff Date, Movement Date, Movement Effective Date, Effective, Effective From, Change Effective Date, Endorsement Effective Date, Amendment Date, Operative Date, Endt Eff. Date, Endt Eff Date, Endt Effective Date, Endt Eff Dt]
+  - name: booking_date
+    display_name: Booking Date
+    type: DATE
+    required: mandatory
+    category: DATES
+    aliases: [Booking Date, Book Dt, Book Date, Booked Date, Date Booked, Entry Date, Date Entered, Ledger Date, Posting Date, Date Posted, Processed Date, Processing Date, System Date, Capture Date, Record Date]
+  - name: cancellation_date
+    display_name: Cancellation Date
+    type: DATE
+    required: conditional
+    category: DATES
+    aliases: [Cancellation Date, Cancel Date, Cancel Dt, Cancelled Date, Date Cancelled, Term Date, Termination Date, Lapse Date, Lapsed Date, Date Lapsed, End of Cover, Early Termination Date, NTU Date, Notice Date]
+
+  # Group E - Exposure
+  - name: sum_insured
+    display_name: Sum Insured (100%)
+    type: DECIMAL
+    required: mandatory
+    category: EXPOSURE
+    aliases: [Sum Insured, "Sum Insured 100%", "Sum Insured (100%)", TSI, Total Sum Insured, Total Insured Value, TIV, SI, Insured Value, Insured Amount, Amount Insured, Declared Value, Replacement Value, Reinstatement Value, Property Value, Asset Value, Full Value, PML, Probable Maximum Loss, Exposure, Exposed Value, Values at Risk, Insured Sum]
+  - name: sum_insured_currency
+    display_name: Sum Insured Currency
+    type: CURRENCY_CODE
+    required: mandatory
+    category: EXPOSURE
+    aliases: [Sum Insured Currency, SI Ccy, SI Currency, TSI Currency, TSI Ccy, Currency of Sum Insured, Insured Currency, Exposure Currency, Values Currency, Ccy of SI, SI Cur, SI Cur., Sum Insured Cur]
+  - name: limit
+    display_name: Limit of Liability
+    type: DECIMAL
+    required: optional
+    category: EXPOSURE
+    aliases: [Limit, Limit of Liability, LOL, Policy Limit, Liability Limit, Limit of Indemnity, Indemnity Limit, Maximum Limit, Max Limit, Cover Limit, Coverage Limit, Aggregate Limit, Per Occurrence Limit, Each and Every Loss Limit, EEL Limit, Payable Limit]
+  - name: deductible
+    display_name: Deductible / Excess
+    type: DECIMAL
+    required: optional
+    category: EXPOSURE
+    aliases: [Deductible, Deductible / Excess, Excess, XS, Self Insured Retention, SIR, Retention, Franchise, Policy Excess, Each and Every Loss Excess, EEL Excess, Each Claim Excess, First Loss, First Amount, Participation of Insured]
+
+  # Group F - Premium & Deductions
+  - name: gross_premium
+    display_name: Gross Premium (100%)
+    type: DECIMAL
+    required: mandatory
+    high_risk: true
+    category: PREMIUM_DEDUCTIONS
+    money_role: GROSS
+    aliases: [Gross Premium, "Gross Premium 100%", "Gross Premium (100%)", Gross Prem, GP, GWP, Gross Written Premium, Written Premium, Premium, Prem, Original Premium, Original Gross Premium, OGP, Full Premium, Total Premium, "Premium 100%", "Prem 100%", Technical Premium, Base Premium, Annual Premium, Charged Premium]
+  - name: gross_premium_paid
+    display_name: Gross Premium Paid This Time
+    type: DECIMAL
+    required: optional
+    category: PREMIUM_DEDUCTIONS
+    aliases: [Gross Premium Paid This Time, Gross Premium Paid, Premium Paid, Prem Paid, Paid Premium, Premium Paid This Period, Instalment Premium, Instalment Prem, Current Instalment, Premium This Period, Premium This Transaction, Reported Premium, Collected Premium, Paid Amount, Movement Amount]
+  - name: policy_fee
+    display_name: Policy Fee
+    type: DECIMAL
+    required: optional
+    category: PREMIUM_DEDUCTIONS
+    aliases: [Policy Fee, Fee, Fees, Admin Fee, Administration Fee, Administrative Fee, Policy Administration Fee, Issuance Fee, Issue Fee, Processing Fee, Service Fee, Handling Fee, Document Fee, Flat Fee, Fixed Fee]
+  - name: tax
+    display_name: "IPT @12%"
+    type: DECIMAL
+    required: conditional
+    high_risk: true
+    category: PREMIUM_DEDUCTIONS
+    money_role: TAX
+    aliases: [IPT, IPT Amount, "IPT @12%", Insurance Premium Tax, Premium Tax, Tax, Tax Amount, Tax Amt, Taxes, Government Tax, Statutory Tax, Fiscal Charge, Fiscal Levy, Levy, Duty, Stamp Duty, Parafiscal Charge, Premium Levy]
+  - name: tax_type
+    display_name: Tax Type
+    type: ENUM
+    required: conditional
+    category: PREMIUM_DEDUCTIONS
+    allowed_values: [IPT, VAT, None, Other]
+    aliases: [Tax Type, Type of Tax, Tax Code, Tax Category, Tax Classification, Levy Type, Duty Type, Fiscal Type]
+  - name: commission_pct
+    display_name: Coverholder Comm %
+    type: PERCENTAGE
+    required: optional
+    category: PREMIUM_DEDUCTIONS
+    aliases: [Coverholder Comm %, Commission %, Comm %, Comm Rate, Commission Rate, Rate of Commission, Commission Percentage, Comm Percentage, CH Comm %, Coverholder Commission %, MGA Comm %, Agency Commission %, Original Commission %, Acquisition Commission %, Deducted Commission %]
+  - name: commission
+    display_name: Coverholder Comm Amt
+    type: DECIMAL
+    required: mandatory
+    high_risk: true
+    category: PREMIUM_DEDUCTIONS
+    money_role: COMMISSION
+    aliases: [Coverholder Comm Amt, Commission, Commission Amount, Comm, Comm Amt, Comm Amount, "Comm $", CH Comm, Coverholder Commission, MGA Commission, Agency Commission, Original Commission, Acquisition Commission, Deducted Commission, Commission Deducted, Comm Deduction, Ceding Commission, Ceding Fee]
+  - name: net_premium
+    display_name: Net Premium (100%)
+    type: DECIMAL
+    required: mandatory
+    high_risk: true
+    category: PREMIUM_DEDUCTIONS
+    money_role: NET
+    aliases: [Net Premium, "Net Premium 100%", "Net Premium (100%)", Net Prem, Net, NP, Net of Commission, Net of Comm, Premium Net, Prem Net, Net Written Premium, NWP, Premium Net of Commission, Premium Net of Deductions, Net Premium Written]
+  - name: brokerage_pct
+    display_name: Placing Brokerage %
+    type: PERCENTAGE
+    required: conditional
+    category: PREMIUM_DEDUCTIONS
+    aliases: [Placing Brokerage %, Brokerage %, Brok %, Brokerage Rate, Rate of Brokerage, Brokerage Percentage, Brok Percentage, Broker Commission %, Broker Fee %, PB %, PB Rate, Reinsurance Brokerage %, RI Brokerage %]
+  - name: brokerage
+    display_name: Placing Brokerage Amt
+    type: DECIMAL
+    required: conditional
+    category: PREMIUM_DEDUCTIONS
+    money_role: BROKERAGE
+    aliases: [Placing Brokerage Amt, Brokerage, Brokerage Amount, Brok, Brok Amt, Brok Amount, "Brok $", PB, PB Amt, Broker Commission, Broker Fee, Broker Remuneration, Brokerage Deducted, Reinsurance Brokerage, RI Brokerage]
+  - name: final_net_premium
+    display_name: Final Net Premium (100%)
+    type: DECIMAL
+    required: mandatory
+    high_risk: true
+    category: PREMIUM_DEDUCTIONS
+    money_role: FINAL_NET
+    aliases: [Final Net Premium, "Final Net Premium 100%", "Final Net Premium (100%)", Final Net, FN, FNP, Net Due, Net Payable, Net Receivable, Net After All Deductions, Fully Net Premium, Net Net, Net Net Premium, Pure Net Premium, Balance Due, Amount Due, Settlement Premium]
+
+  # Group G - Participating Share
+  - name: order_pct
+    display_name: Order %
+    type: PERCENTAGE
+    required: conditional
+    category: PARTICIPATING_SHARE
+    aliases: [Order %, Order, Order Percentage, Our Order, "Our Share %", "Share %", Share, Participation, "Participation %", Participation Share, Signed Line, "Signed Line %", Written Line, "Written Line %", "Line %", Line Size, Line Share, Accepted Share, "Accepted %", Reinsurer Share, Underwriter Share, Syndicate Share]
+  - name: gross_premium_our_share
+    display_name: Gross Prem Our Share
+    type: DECIMAL
+    required: optional
+    category: PARTICIPATING_SHARE
+    money_role: OUR_SHARE
+    aliases: [Gross Prem Our Share, Gross Premium Our Share, GP Our Share, Gross Share, Our Gross, Our Gross Premium, Our Gross Prem, Gross Signed, Gross Written Our Share, GWP Our Share, Reinsurer Gross, Reinsurer Share Gross, Participating Gross, Accepted Gross Premium]
+  - name: commission_our_share
+    display_name: Comm Our Share
+    type: DECIMAL
+    required: optional
+    category: PARTICIPATING_SHARE
+    money_role: COMMISSION_OUR_SHARE
+    aliases: [Comm Our Share, Commission Our Share, Comm Share, Our Comm, Our Commission, Our Commission Amt, Commission Signed, Reinsurer Commission, Reinsurer Share Commission, Participating Commission, Accepted Commission, Ceding Commission Our Share]
+  - name: final_net_our_share
+    display_name: Final Net Our Share
+    type: DECIMAL
+    required: optional
+    category: PARTICIPATING_SHARE
+    money_role: FINAL_NET_OUR_SHARE
+    aliases: [Final Net Our Share, FN Our Share, Final Net Share, Net Share, Our Net, Our Final Net, Our Net Premium, Net Our Share, Net Signed, Net Payable Our Share, Net Due Our Share, Reinsurer Net, Reinsurer Share Net, Participating Net, Accepted Net, Settlement Net Our Share]
+
+  # Group H - Currency & Settlement
+  - name: original_currency
+    display_name: Original Currency
+    type: CURRENCY_CODE
+    required: mandatory
+    category: CURRENCY_SETTLEMENT
+    aliases: [Original Currency, Orig Ccy, Orig Currency, Policy Currency, Pol Ccy, Pol Currency, Written Currency, Transaction Currency, Txn Currency, Underlying Currency, Local Currency, Source Currency, Ccy, Currency, Currency Code, ISO Currency]
+  - name: settlement_currency
+    display_name: Settlement Currency
+    type: CURRENCY_CODE
+    required: mandatory
+    category: CURRENCY_SETTLEMENT
+    aliases: [Settlement Currency, Settle Ccy, Settle Currency, Payment Currency, Pay Ccy, Pay Currency, Remittance Currency, Reporting Currency, Rpt Ccy, Account Currency, Accounting Currency, Base Currency, Target Currency, Converted Currency, Settlement Ccy, Settlement Cur, Settle Cur]
+  - name: fx_rate
+    display_name: Exchange Rate
+    type: DECIMAL
+    required: conditional
+    category: CURRENCY_SETTLEMENT
+    aliases: [Exchange Rate, FX, FX Rate, Rate of Exchange, ROE, Conversion Rate, Currency Rate, Rate, FX Conversion, Settlement Rate, Spot Rate, Applied Rate, Transaction Rate]
+  - name: final_net_settlement
+    display_name: FN Premium (Settlement)
+    type: DECIMAL
+    required: conditional
+    category: CURRENCY_SETTLEMENT
+    money_role: SETTLEMENT
+    aliases: ["FN Premium (Settlement)", FN Premium Settlement, Final Net Settlement, Net Settlement, Settled Net, Settled Net Premium, Settlement Net, Settlement Amount, Settlement Premium, Payable Amount, Remittance Amount, Converted Net Premium, Net in Settlement Currency, Final Net Payable]
+
+  # Group I - Control & Status
+  - name: signed_written
+    display_name: Signed/Written
+    type: ENUM
+    required: mandatory
+    category: CONTROL_STATUS
+    allowed_values: [Signed, Written]
+    aliases: [Signed/Written, Signed or Written, S/W, S/W Basis, Signed Written Basis, Basis, Premium Basis, Reporting Basis, Written or Signed, Written/Signed, Line Basis]
+  - name: status
+    display_name: Status
+    type: ENUM
+    required: mandatory
+    category: CONTROL_STATUS
+    allowed_values: [Live, Cancelled, Lapsed, Expired, Pending]
+    aliases: [Status, Policy Status, Risk Status, Transaction Status, Current Status, State, Policy State, Record Status, Position, Standing]
+  - name: sanctions_check
+    display_name: Sanctions Check
+    type: ENUM
+    required: mandatory
+    category: CONTROL_STATUS
+    allowed_values: [Pass, Fail, Pending, "Not Required"]
+    aliases: [Sanctions Check, Sanctions, Sanctions Status, Sanctions Result, Sanctions Screening, Screening Result, Screening Status, Compliance Check, Compliance Status, OFAC Check, OFAC Status, AML Check, KYC Check, Watchlist Check]
+  - name: reporting_period_end
+    display_name: "Reporting Period (End Date)"
+    type: DATE
+    required: mandatory
+    category: CONTROL_STATUS
+    aliases: ["Reporting Period (End Date)", Reporting Period End, Reporting Period, Period End, Period End Date, Reporting Date, Report Date, Report Period, Statement Period, Statement End Date, Statement Date, Bordereau Period, Bordereau Date, Submission Period, Submission Date, As At Date, As Of Date, Cut-Off Date]
+
+  # Group J - Treaty Figures (user input, not from the bordereaux file itself)
+  - name: treaty_commission_pct
+    display_name: "Commission %"
+    type: PERCENTAGE
+    required: mandatory
+    source: user_input
+    category: TREATY_FIGURES
+    aliases: ["Commission %", Treaty Commission %, Treaty Comm %, Agreed Commission %, Contract Commission %, Standard Commission %, Base Commission %, Ceding Commission %, "CC %", Reference Commission %]
+  - name: treaty_brokerage_pct
+    display_name: "Brokerage %"
+    type: PERCENTAGE
+    required: conditional
+    source: user_input
+    category: TREATY_FIGURES
+    aliases: ["Brokerage %", Treaty Brokerage %, Treaty Brok %, Agreed Brokerage %, Contract Brokerage %, Standard Brokerage %, Broker Fee %, Reference Brokerage %]
+  - name: treaty_tax_pct
+    display_name: "Tax / IPT %"
+    type: PERCENTAGE
+    required: mandatory
+    source: user_input
+    category: TREATY_FIGURES
+    aliases: ["Tax %", "Tax / IPT %", "IPT %", Insurance Premium Tax %, Treaty Tax %, Agreed Tax Rate, Applicable Tax Rate, Statutory Tax Rate, "Levy %", "Duty %", Reference Tax Rate]
+  - name: treaty_cession_pct
+    display_name: "Cession %"
+    type: PERCENTAGE
+    required: mandatory
+    source: user_input
+    category: TREATY_FIGURES
+    aliases: ["Cession %", Treaty Cession %, "Ceded %", Ceded Share %, Cession Rate, Cession Share, "Quota Share %", "QS %", Proportional Share %, Treaty Share %, Ceded Portion, Share Ceded]
+  - name: treaty_order_pct
+    display_name: "Order %"
+    type: PERCENTAGE
+    required: conditional
+    source: user_input
+    category: TREATY_FIGURES
+    aliases: ["Order %", Treaty Order %, "Our Share %", "Our Order %", "Participation %", "Signed Line %", "Written Line %", "Accepted Share %", "Reinsurer Share %", Reference Order %]
+  - name: treaty_fx_rate
+    display_name: FX Rate
+    type: DECIMAL
+    required: conditional
+    source: user_input
+    category: TREATY_FIGURES
+    aliases: [FX Rate, Treaty FX Rate, Agreed FX Rate, Exchange Rate, Rate of Exchange, ROE, Conversion Rate, Reference Rate, Settlement Rate, Applied Rate, Standard FX Rate]
+
+# Resolution order for a column that doesn't match any field's alias list
+# exactly (coordinator §3-stage: exact -> fuzzy -> semantic/arithmetic -> human):
+resolution:
+  stages: [EXACT, FUZZY, SEMANTIC_ARITHMETIC, HUMAN_REVIEW]
+  fuzzy_threshold: 0.90
+  unrecognised_column_policy: PASS_THROUGH  # tagged extra_<original_header>, never dropped, never blocking

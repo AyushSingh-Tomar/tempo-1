@@ -1,0 +1,736 @@
+# Task: Complete the First Iteration of the Bordereaux Ingestion and Standardization Pipeline
+
+You are working in the existing `reinsurance-bordereaux-process-claimiq` repository.
+
+Your responsibility is to understand the complete project context, inspect the current implementation and progress, identify the correct work remaining, coordinate available agents, implement the missing functionality, and verify the result against every available test workbook.
+
+**Do not start by rewriting the project. Continue from where the existing implementation has been left. Preserve working code, reuse existing components, and make only the changes necessary to complete the first iteration.**
+
+The final deliverable must be a functional ingestion and standardization pipeline integrated with the existing application, not just an implementation plan, code review, mock UI, or isolated script.
+
+---
+
+# 1. Establish the Complete Project Context
+
+Before making any changes, read the relevant project documentation and understand the requirements, architecture, current progress, and scope boundaries.
+
+## 1.1 Read the project documents
+
+Locate and read the complete contents of the following documents wherever they are available:
+
+- `README.md`
+- `SOLUTION_DESIGN.md`
+- `databricks_ui_ux_architecture_reference.md`
+- `Module_1_ingestion_and_naming.md`
+- `Checks_to_perform(1).md`
+- `Module_2_Reconciliation_Implement.md`
+- `Treaty Management Section_Implement.md`
+- `Initial_iteration_implementation_prompt` or the exact corresponding filename in the repository.
+
+Also inspect any relevant test instructions, architecture notes, existing implementation plans, API documentation, and agent instructions.
+
+Do not assume the filenames are exact or that all documents are located in the repository root. Search the available project files and documentation for the actual locations.
+
+If the initial-iteration prompt or another important document cannot be found, report that explicitly. Do not silently substitute a guessed version.
+
+## 1.2 Establish the requirements hierarchy
+
+Use the following priorities when deciding what to implement:
+
+1. The explicitly defined first-iteration scope and subsequent scope decisions.
+2. The initial-iteration implementation prompt.
+3. The existing solution architecture and relevant module specifications.
+4. The actual implemented behavior and established API contracts.
+5. The test workbooks and their verified expected behavior.
+
+The broader project includes reconciliation, treaty management, financial validation, and AI-assisted diagnostics. These capabilities may appear in the architecture and test data, but their presence does not automatically make them part of the first iteration.
+
+If two documents conflict, identify the conflict, follow the narrower approved first-iteration scope, and document any material ambiguity.
+
+## 1.3 Inspect the current implementation and progress
+
+Inspect the entire relevant repository structure, including:
+
+- Application entry points and API routes.
+- Request and response schemas.
+- Upload and file-processing endpoints.
+- Excel and CSV parsing utilities.
+- Header detection and workbook inspection.
+- Data profiling and normalization.
+- Canonical schemas and naming conventions.
+- Column mapping, aliases, confidence scoring, and ambiguity handling.
+- Existing LLM agents, prompts, routers, and API clients.
+- File storage and standardized output generation.
+- Database models and persistence, if used by the current workflow.
+- Frontend pages, components, and processing-state management, if applicable.
+- Logging, exception handling, configuration, and environment variables.
+- Existing unit, integration, and end-to-end tests.
+- Dependency and environment configuration.
+- Existing generated artifacts and documented limitations.
+
+Trace the real execution path from file upload to the final standardized output. Identify where data enters, which services process it, where mapping decisions occur, and how results reach the user.
+
+Determine which functionality is complete, partially implemented, missing, broken, duplicated, or disconnected.
+
+Check the current Git branch, uncommitted changes, and relevant recent commits where available. Do not reset the branch, discard changes, overwrite unrelated work, or commit changes unless explicitly authorized.
+
+### Required assessment
+
+Before substantial modifications, prepare a concise internal implementation assessment containing:
+
+- What already works.
+- What is incomplete or broken.
+- What should be reused.
+- What must be implemented or fixed.
+- Which tasks depend on other tasks.
+- Which requirements are ambiguous or blocked.
+
+Then proceed with implementation. Do not stop after producing the assessment unless a genuine blocker makes further progress unsafe.
+
+---
+
+# 2. Coordinate the Work Using Available Agents
+
+Inspect the current coding environment to determine which agents or subagents are actually available.
+
+If multi-agent execution is supported, delegate suitable, independent tasks to the correct agents. Do not assume a particular agent exists or invent agent names.
+
+Suggested responsibilities:
+
+### Agent A — Repository and architecture assessment
+
+Inspect the project documentation, current implementation, Git state, and missing first-iteration functionality. Identify existing services and integration points that should be reused.
+
+### Agent B — Test workbook inspection
+
+Inspect every available test workbook, including all worksheets, representative data, headers, formulas, metadata, and Answer Keys. Produce an evidence-based workbook inventory and derive ingestion/standardization test cases.
+
+### Agent C — Ingestion and standardization
+
+Inspect and implement missing workbook parsing, transaction-sheet detection, header detection, data normalization, source lineage, and standardized output generation.
+
+### Agent D — Column mapping and LLM integration
+
+Inspect the current mapping implementation and existing provider integration. Determine what should remain deterministic, where semantic interpretation is justified, and how unresolved mappings should be handled safely.
+
+### Agent E — Testing and verification
+
+Inspect the existing test suite, add regression tests, run the workbook fixtures against the implementation, and independently verify the reported results.
+
+These are suggested responsibilities, not mandatory separate agents. Combine tasks when delegation is unavailable or would introduce unnecessary overhead.
+
+## Coordination rules
+
+- The primary agent is responsible for final integration and correctness.
+- Delegate independent analysis before delegating overlapping code modifications.
+- Share findings and interface expectations between agents.
+- Avoid concurrent conflicting edits to the same files.
+- Review agent-produced changes rather than accepting them blindly.
+- Verify important claims against the actual source code and test output.
+- Do not claim an agent completed a task merely because it was assigned.
+
+If agent delegation is unavailable, perform the same work sequentially and state that no separate agents were available.
+
+---
+
+# 3. Inspect Every Available Test Workbook
+
+Locate the test workbooks in the repository, test-data directories, mounted files, and other accessible project locations.
+
+The expected list is:
+
+1. `sample_bordereaux_master.xlsx`
+2. `test_control_zero_issues.xlsx`
+3. `test_std_01_structural.xlsx`
+4. `test_std_02_formats.xlsx`
+5. `test_std_03_multisheet.xlsx`
+6. `test_map_01_exact_fuzzy.xlsx`
+7. `test_map_02_semantic.xlsx`
+8. `test_map_03_arithmetic_passthrough.xlsx`
+9. `test_mcr_01_core_deduction.xlsx`
+10. `test_mcr_02_basis_alignment.xlsx`
+11. `test_mcr_03_traps.xlsx`
+12. `test_mcr_04_signs_totals_ambiguity.xlsx`
+13. `test_integration_realistic.xlsx`
+
+This is the expected inventory, not proof that all 13 files are available. Verify their actual presence before testing.
+
+If a workbook is missing, report its exact filename and the locations searched. Never fabricate workbook contents or claim to have tested an unavailable file.
+
+## 3.1 Inspect actual workbook contents
+
+For each available workbook, use appropriate Excel inspection tools to determine:
+
+- Actual worksheet names and order.
+- Worksheet dimensions and used ranges.
+- Candidate header rows.
+- Column names and representative values.
+- Data types and number formats.
+- Blank rows and columns.
+- Merged cells and multi-row headers.
+- Formulas and cached values, where available.
+- Hidden sheets or rows when relevant.
+- Identifiers with leading zeros.
+- Date and numeric representations.
+- Negative values and zeros.
+- Duplicate or competing headers.
+- Potential subtotal or grand-total rows.
+- The location and purpose of any `Answer Key`.
+- The structure of any reference or instruction sheets.
+
+Inspect all relevant rows when deriving expected results. Representative samples are useful for exploration, but must not replace complete inspection when a test depends on a specific record.
+
+Use read-only inspection. Do not modify the original test workbooks.
+
+## 3.2 Identify each sheet's role
+
+Most of the described workbooks are expected to contain three principal sheets:
+
+- `Bordereaux`: transaction or policy records.
+- `Treaty Figures`: reference parameters.
+- `Answer Key`: expected test outcomes.
+
+One workbook may additionally contain `Cover` and `Instructions`.
+
+Verify these roles against the actual contents rather than assuming the names are authoritative.
+
+The pipeline must distinguish transaction data from metadata, instructions, treaty references, and test expectations.
+
+Do not concatenate every worksheet into one dataset. Do not select the first worksheet blindly.
+
+## 3.3 Produce a workbook inventory
+
+Create a durable document in the project's existing documentation or test-report location, using the repository's naming conventions.
+
+For each workbook, include:
+
+- Filename and availability.
+- Worksheet names and dimensions.
+- Role of every worksheet.
+- Transaction input sheet or sheets.
+- Reference and metadata sheets.
+- Answer Key location.
+- Actual structural and data-format characteristics.
+- Intended ingestion or mapping scenario.
+- Expected behavior verified from the contents.
+- Current implementation behavior.
+- Test coverage and outstanding failures.
+- Relevant evidence, including row counts and source-row references where useful.
+
+Clearly distinguish observed facts from assumptions and hypotheses.
+
+---
+
+# 4. Understand How to Use Each Test Workbook
+
+Use the following classification as an initial guide. Verify each classification against the actual workbook and its Answer Key.
+
+| Workbook | Primary purpose | Required first-iteration behavior |
+|---|---|---|
+| `sample_bordereaux_master.xlsx` | General sample dataset | Explore the schema and test broad ingestion and standardization behavior. Do not assume it is authoritative production data. |
+| `test_control_zero_issues.xlsx` | Clean control dataset | Verify correct ingestion, schema, record preservation, and absence of unexpected ingestion warnings. Do not implement reconciliation just because the filename says zero issues. |
+| `test_std_01_structural.xlsx` | Structural variations | Detect title rows, blank rows, and headers below the first row. Extract transaction records correctly. |
+| `test_std_02_formats.xlsx` | Formatting variations | Normalize supported date and numeric formats, whitespace, casing, and parenthesized negative numbers without changing meaning. |
+| `test_std_03_multisheet.xlsx` | Multi-sheet workbook | Select the correct transaction sheet and keep metadata, instructions, treaty references, and Answer Key separate. |
+| `test_map_01_exact_fuzzy.xlsx` | Exact and fuzzy mapping | Test exact, normalized, abbreviated, and minor spelling-variation matches. |
+| `test_map_02_semantic.xlsx` | Semantic mapping | Test whether differently named source fields can be mapped using approved aliases and semantic evidence. |
+| `test_map_03_arithmetic_passthrough.xlsx` | Ambiguous mapping | Test ambiguity handling and preservation of unresolved fields. Do not implement arithmetic-based financial inference. |
+| `test_mcr_01_core_deduction.xlsx` | Downstream financial scenario | Test only workbook ingestion, structure, normalization, and safe column mapping. |
+| `test_mcr_02_basis_alignment.xlsx` | Downstream financial-basis scenario | Test ingestion and preservation of values, signs, percentages, and relevant columns. Do not calculate treaty shares or currency conversions. |
+| `test_mcr_03_traps.xlsx` | Misleading names and ambiguous interpretation | Verify that misleading headers do not cause unsupported automatic mappings. Preserve unresolved columns. |
+| `test_mcr_04_signs_totals_ambiguity.xlsx` | Signs, totals, and ambiguity | Preserve negative values, zero values, cancellations, and source rows. Identify likely totals structurally where justified, without calculating financial outcomes. |
+| `test_integration_realistic.xlsx` | Combined realistic scenarios | Run the complete first-iteration ingestion and standardization path using actual workbook contents. |
+
+The classifications above describe intended test purposes. The agent must confirm the details from the files.
+
+## 4.1 Answer Key isolation
+
+The Answer Key is a test oracle, not runtime input.
+
+The test harness may inspect it to determine expected outcomes and compare them with independently produced pipeline results. The processing application must not receive the Answer Key as a source of expected values or use it to determine its own output.
+
+Avoid test leakage:
+
+1. Read the test input and Answer Key separately.
+2. Invoke the normal processing pipeline using only the designated input data and allowed reference metadata.
+3. Collect the actual output.
+4. Compare actual results with the independently loaded expected results.
+5. Report mismatches without modifying the expected results to make the test pass.
+
+If an Answer Key contains financial pass/fail expectations outside the first-iteration scope, document those expectations but do not implement the associated financial calculations.
+
+---
+
+# 5. Strict First-Iteration Scope
+
+The objective is to create a reliable ingestion and standardization pipeline that prepares bordereaux data for downstream processing.
+
+The core path is:
+
+`Upload → Validate → Inspect Workbook → Identify Transaction Data → Detect Headers → Normalize Data → Map Columns → Review Ambiguities → Generate Standardized Output`
+
+Complete the corresponding backend services and integrate them into the existing application's upload/processing workflow.
+
+## In scope
+
+- Excel ingestion using the existing supported API.
+- Workbook and worksheet inspection.
+- Transaction-sheet and header-row detection.
+- Safe structural normalization.
+- Date, numeric, and text-format normalization.
+- Canonical field mapping.
+- Semantic mapping assistance where justified.
+- Ambiguity detection and preservation of unmapped fields.
+- Before/after summaries and useful warnings where the existing UI supports them.
+- Source-row and workbook/sheet lineage.
+- Standardized file generation.
+- API integration and error handling.
+- Automated testing against the available workbooks.
+- Documentation of implementation progress, tests, and operating instructions.
+
+## Explicitly out of scope
+
+Do not implement:
+
+- Treaty management or treaty-rule engines.
+- Premium calculations.
+- Commission, brokerage, tax, or IPT calculations.
+- Cession or order-share calculations.
+- FX conversions.
+- Financial reconciliation.
+- Reconciliation keys, variances, or tolerance-based financial checks.
+- MCR business calculations.
+- Financial discrepancy classification or overrides.
+- Downstream reconciliation dashboards or financial reports.
+- New downstream business logic solely to satisfy the MCR Answer Keys.
+
+Preserve and normalize relevant source values, including monetary values and percentages, but do not calculate or validate their business relationships.
+
+Do not expand the current iteration into the complete long-term product architecture.
+
+---
+
+# 6. Complete Robust Workbook Ingestion
+
+Inspect the current parser and improve it to handle the actual structures present in the test workbooks.
+
+## 6.1 File validation
+
+Use the existing upload API and supported file formats.
+
+Implement or complete:
+
+- Empty-file rejection.
+- Extension and actual file-content validation.
+- Configured file-size limits.
+- Workbook readability checks.
+- Appropriate handling of malformed or corrupt files.
+- Useful error responses.
+- Safe handling of multiple worksheets.
+- Existing API-compatible success and failure responses.
+
+Do not silently accept an unsupported file merely because its filename ends in `.xlsx`.
+
+## 6.2 Transaction-sheet detection
+
+Identify candidate transaction worksheets using the available evidence:
+
+- Sheet names.
+- Header candidates.
+- Data density and row structure.
+- Presence of recognizable transaction fields.
+- Workbook instructions or metadata where appropriate.
+- Existing project configuration.
+
+Do not hardcode a single worksheet name as the only valid input.
+
+Avoid choosing a `Cover`, `Instructions`, `Treaty Figures`, or `Answer Key` sheet as transaction data.
+
+If multiple plausible transaction sheets exist, follow documented configuration or request explicit selection through the existing application workflow. Do not silently combine them.
+
+## 6.3 Header detection
+
+Detect actual header rows when title rows, blank rows, metadata, or merged cells precede the transaction table.
+
+Use deterministic structural heuristics first.
+
+Retain enough source information to explain which row was selected and why.
+
+If the structure remains ambiguous, return a reviewable result or a clear error instead of silently extracting incorrect columns.
+
+## 6.4 Source provenance
+
+Preserve:
+
+- Original filename or source identifier.
+- Source worksheet.
+- Original header text.
+- Original source row number.
+- Original values, or a traceable reference to the immutable source artifact.
+- Normalization changes and parsing warnings.
+
+Do not overwrite the original uploaded file.
+
+---
+
+# 7. Complete Data Cleaning and Standardization
+
+Inspect the existing canonical schema and reuse it wherever possible.
+
+If the schema is incomplete, define or extend it only as necessary and document the changes.
+
+## 7.1 Header normalization
+
+Support:
+
+- Trimming whitespace.
+- Consistent casing and separators.
+- Normalizing repeated spaces and common punctuation.
+- Approved aliases and abbreviations.
+- Minor spelling variations.
+- Duplicate normalized headers.
+
+Preserve original header names for traceability.
+
+Do not silently merge two source columns merely because they normalize to the same name.
+
+## 7.2 Data-type normalization
+
+Support the representations found in the actual workbooks, including where applicable:
+
+- Supported date formats.
+- Numeric strings with recognized separators.
+- Parenthesized negative numbers such as `(125.50)`.
+- Legitimate zero and negative values.
+- Blank and whitespace-only values.
+- Recognized null representations.
+- Identifiers with leading zeros.
+- Currency and percentage representations without performing financial calculations.
+
+Distinguish missing values from genuine zero values.
+
+Do not silently coerce invalid or ambiguous values to zero, null, or an invented value.
+
+When the source representation is ambiguous, preserve the original value, produce a warning, and avoid a destructive conversion.
+
+## 7.3 Record and column preservation
+
+Do not silently drop transaction records or unfamiliar columns.
+
+Preserve unknown columns in the standardized output or the existing supported extension mechanism.
+
+Where totals and subtotals appear, use structural evidence and explicit configuration to identify them if required. Do not remove them automatically unless the existing requirements define a safe, tested behavior.
+
+Keep raw source data available for auditability.
+
+## 7.4 Determinism
+
+Processing the same file with the same configuration should produce the same standardized data and mapping outcomes, apart from explicitly variable metadata such as timestamps.
+
+Do not allow nondeterministic LLM responses to silently change accepted mappings between identical runs without a documented, reviewable mechanism.
+
+---
+
+# 8. Complete Column Mapping Safely
+
+Inspect the existing canonical schema, data dictionary, mapping services, alias dictionaries, and any existing mapping agents.
+
+Reuse the existing implementation rather than building a parallel mapping engine.
+
+Implement or complete this sequence:
+
+1. Exact header match.
+2. Normalized header match.
+3. Approved alias/dictionary match.
+4. Fuzzy match for minor spelling differences and abbreviations.
+5. Semantic mapping when deterministic evidence is insufficient.
+6. Explicit ambiguity handling for competing or unsupported candidates.
+
+For each proposed mapping, retain:
+
+- Original source header.
+- Normalized source header.
+- Canonical target field.
+- Mapping method.
+- Confidence or match score where supported.
+- Supporting evidence.
+- Status: accepted, rejected, unmapped, or needs review.
+- Any relevant validation warnings.
+
+Use explicit acceptance thresholds and prevent two incompatible source columns from silently mapping to the same canonical field.
+
+Do not assume that similar names necessarily represent equivalent financial fields.
+
+### Special rule for `test_map_03_arithmetic_passthrough.xlsx`
+
+The word "arithmetic" in the filename does not authorize implementing financial calculations.
+
+Use headers, aliases, actual values as contextual evidence, and the existing mapping configuration. If a financial field remains ambiguous, preserve it as unmapped and explain the uncertainty.
+
+Do not use arithmetic relationships to calculate, validate, or infer financial values during this iteration.
+
+---
+
+# 9. Determine Where Existing LLM Calls Are Necessary
+
+Inspect the actual agent configuration, prompts, provider integrations, and API client implementation.
+
+Do not add LLM calls merely because the application is AI-enabled.
+
+Use deterministic logic wherever it can reliably perform the task.
+
+| Task | Preferred method | LLM required? |
+|---|---|---|
+| Read workbooks and worksheets | Excel parsing library | No |
+| Identify blank rows and header candidates | Structural heuristics | Normally no |
+| Normalize whitespace and casing | Deterministic code | No |
+| Parse supported dates and numbers | Deterministic parsing | No |
+| Match exact headers | Dictionary/rules | No |
+| Match common abbreviations and misspellings | Alias dictionary and fuzzy matching | Normally no |
+| Map semantically different headers | Deterministic aliases first | Possible fallback |
+| Resolve genuinely ambiguous field meanings | Existing metadata and mapping evidence first | Possible fallback |
+| Choose between ambiguous transaction sheets | Structural evidence first | Optional fallback |
+| Explain unresolved mappings | Structured mapping evidence | Optional |
+| Generate standardized output | Existing file-processing libraries | No |
+
+For every LLM call that remains in scope, document:
+
+- The unresolved task.
+- Why deterministic logic is insufficient.
+- The minimum input context.
+- The prompt and expected structured response.
+- Response validation.
+- Confidence thresholds.
+- Failure and timeout behavior.
+- Retry limits and cost safeguards.
+- Human-review requirements, if applicable.
+- Logging and reproducibility.
+
+Validate every model response against the expected schema before using it.
+
+An LLM may propose a mapping, but it must not invent source values, calculate financial outcomes, or bypass mapping-validation rules.
+
+Reuse the existing provider and client unless a documented technical issue requires a change.
+
+If credentials are unavailable, use mocks to test the integration and document the exact configuration needed for live execution. Do not claim live connectivity was tested unless it actually was.
+
+---
+
+# 10. Integrate the Implementation into the Existing Application
+
+Trace the current API flow and connect the completed components through the established architecture.
+
+The functional workflow must:
+
+1. Accept an uploaded workbook.
+2. Validate the file.
+3. Inspect worksheet structures.
+4. Identify the correct transaction data.
+5. Detect headers.
+6. Parse and normalize values.
+7. Map known fields to the canonical schema.
+8. Preserve unresolved columns and source lineage.
+9. Produce mapping results and warnings.
+10. Generate a standardized output file.
+11. Return the appropriate processing status and output information through the existing API contract.
+
+If the application already has a frontend, connect the feature to the existing interface rather than replacing the application shell.
+
+Where the current interface supports review, ensure users can inspect the detected sheet, cleaning summary, mapping decisions, and unresolved fields.
+
+If the interface does not support those steps, implement only the necessary additions consistent with the existing UI architecture.
+
+Keep business logic out of UI components.
+
+Do not create a new API contract, database schema, or job framework without first establishing that the existing one cannot support the required behavior.
+
+---
+
+# 11. Build Automated Regression Tests from the Actual Files
+
+Create or extend tests using the project's existing framework and conventions.
+
+For every available workbook, create a test case that exercises the real ingestion/standardization path.
+
+Cover:
+
+- Correct transaction-sheet selection.
+- Header detection.
+- Structural normalization.
+- Date and numeric parsing.
+- Negative values and zero preservation.
+- Identifier preservation.
+- Exact, fuzzy, and semantic mapping.
+- Duplicate or competing headers.
+- Unmapped-column preservation.
+- Ambiguous mapping behavior.
+- Source-row provenance.
+- Row and column counts.
+- Output schema.
+- Output file generation and readability.
+- Error handling for invalid files.
+- Separation of transaction data from reference and Answer Key sheets.
+- LLM response validation and provider failures, where applicable.
+
+Use actual workbook contents and verified Answer Key expectations to create assertions.
+
+Do not invent expected values. Do not alter test workbooks or Answer Keys to make tests pass.
+
+## 11.1 Workbook-specific test expectations
+
+- `sample_bordereaux_master.xlsx`: establish the actual structure and verify broad ingestion behavior.
+- `test_control_zero_issues.xlsx`: verify that the input is ingested and standardized correctly without unexpected ingestion errors.
+- `test_std_01_structural.xlsx`: verify the detected header row and extracted transaction records.
+- `test_std_02_formats.xlsx`: verify supported parsing and preservation of signs, zeros, and identifiers.
+- `test_std_03_multisheet.xlsx`: verify correct sheet selection and exclusion of non-transaction sheets.
+- `test_map_01_exact_fuzzy.xlsx`: verify deterministic and fuzzy mapping outcomes.
+- `test_map_02_semantic.xlsx`: verify semantic mapping or an explicit unresolved outcome.
+- `test_map_03_arithmetic_passthrough.xlsx`: verify ambiguity reporting and safe passthrough.
+- `test_mcr_01_core_deduction.xlsx`: verify ingestion and mapping only.
+- `test_mcr_02_basis_alignment.xlsx`: verify ingestion and preservation of financial representations only.
+- `test_mcr_03_traps.xlsx`: verify safe handling of misleading fields and unresolved mappings.
+- `test_mcr_04_signs_totals_ambiguity.xlsx`: verify preservation of signs, zero values, totals, and source rows.
+- `test_integration_realistic.xlsx`: verify the complete first-iteration processing workflow.
+
+Do not interpret these tests as requiring MCR calculations or reconciliation.
+
+## 11.2 Answer Key comparison
+
+Where an Answer Key defines expected ingestion or mapping behavior, compare the actual pipeline output against those expectations.
+
+If an Answer Key only defines financial calculations, document those expectations as deferred downstream functionality.
+
+Do not force a first-iteration ingestion test to pass or fail based on an out-of-scope financial reconciliation result.
+
+When the Answer Key is ambiguous, record the ambiguity and explain the interpretation used. Do not quietly rewrite the expected behavior.
+
+## 11.3 Execute and report actual test results
+
+Run:
+
+1. Relevant unit tests.
+2. Workbook-specific tests.
+3. API and service integration tests.
+4. End-to-end tests.
+5. The complete regression suite.
+6. Relevant linting and type checks available in the repository.
+
+Fix failures introduced by your changes and rerun the affected tests.
+
+For every available workbook, report:
+
+- Whether the file was found.
+- Whether processing was executed.
+- Actual transaction sheet selected.
+- Actual detected header row.
+- Input and output row/column counts.
+- Mapping outcomes and unresolved fields.
+- Warnings and errors.
+- Output file validation.
+- Test result and any differences from expected behavior.
+
+If a test fails, report the failure and its cause where established. If the cause remains unknown, say so.
+
+Do not report a test as passed when it was skipped, unavailable, mocked at the wrong layer, or never executed.
+
+---
+
+# 12. Document How to Continue Testing the Project
+
+The implementation must be easy for another engineer to run and verify.
+
+Inspect the existing environment and document the exact commands appropriate to the repository.
+
+Provide instructions for:
+
+1. Installing dependencies.
+2. Configuring required environment variables.
+3. Starting the application.
+4. Uploading a test workbook through the existing API or UI.
+5. Running a single workbook-specific test.
+6. Running all workbook tests.
+7. Running the complete regression suite.
+8. Enabling an optional live LLM integration test, if supported.
+9. Inspecting the standardized output and test results.
+10. Diagnosing common failures.
+
+Use actual route names, CLI commands, environment variables, and test paths from the implementation. Do not invent them.
+
+Where appropriate, provide a small example showing how to run the pipeline on one workbook without exposing the Answer Key to the runtime processor.
+
+Keep test fixtures and expected-result loading separate from application code.
+
+Document how to add a new workbook and its corresponding expected behavior without changing the production pipeline to accommodate that specific fixture.
+
+---
+
+# 13. Definition of Done
+
+The first iteration is complete when all applicable conditions are satisfied:
+
+- [ ] The complete relevant project context has been inspected.
+- [ ] The initial-iteration prompt and scope boundaries have been verified.
+- [ ] Existing implementation progress has been assessed.
+- [ ] Available agents have been used appropriately, or their unavailability has been documented.
+- [ ] All available test workbooks have been inventoried and inspected.
+- [ ] Missing expected workbooks have been explicitly reported.
+- [ ] Correct transaction-sheet and header detection work for supported workbook structures.
+- [ ] Data normalization preserves meaningful source values.
+- [ ] Column mapping supports exact, normalized, alias, fuzzy, and justified semantic matches.
+- [ ] Ambiguous fields are flagged instead of silently misclassified.
+- [ ] Unknown columns and source lineage are preserved.
+- [ ] Standardized output generation works through the existing application.
+- [ ] The Answer Key remains isolated from runtime processing.
+- [ ] Every available workbook has an executed, appropriately scoped regression test.
+- [ ] Failures and expected-versus-actual differences are documented.
+- [ ] Existing tests remain functional.
+- [ ] The complete regression suite and available quality checks have been run.
+- [ ] No treaty calculations, MCR calculations, or financial reconciliation logic have been introduced.
+- [ ] Setup and testing instructions are documented.
+- [ ] The application remains compatible with its established architecture and API contracts.
+
+---
+
+# 14. Final Deliverables and Completion Report
+
+After implementation and verification, provide a concise but evidence-based report containing the following sections.
+
+### A. Existing implementation assessment
+
+Explain what was already working, what was incomplete, and what was changed.
+
+### B. Actual workbook inventory
+
+List every available and missing workbook, its actual worksheets, each worksheet's role, the relevant structural characteristics, and its intended test behavior.
+
+### C. Implementation changes
+
+List files created or modified, explain their purpose, and identify the existing components reused.
+
+### D. Mapping and LLM decisions
+
+Explain how mappings are resolved, how ambiguity is handled, and exactly which stages make LLM calls and why.
+
+### E. Test results
+
+Provide a workbook-by-workbook table showing execution status, row counts, mapping results, warnings, output validation, and expected-versus-actual differences.
+
+Include the actual results of the full regression suite.
+
+### F. How to run the implementation
+
+Provide verified commands for installation, configuration, application startup, workbook processing, individual tests, and the full test suite.
+
+### G. Remaining limitations
+
+List missing files, failed tests, unresolved ambiguities, unavailable credentials, deferred functionality, and decisions requiring mentor input.
+
+Clearly separate completed work, verified behavior, unverified behavior, and out-of-scope requirements.
+
+## Final instruction
+
+Start by reading the complete project context and inspecting the current repository and every available test workbook. Establish where implementation has been left, coordinate the available agents, and continue from the existing code.
+
+Implement incrementally, test each stage, fix the resulting issues, and finish with a verified first-iteration ingestion and standardization pipeline.
+
+**Do not stop at planning. Do not rewrite working modules unnecessarily. Do not implement downstream financial calculations. Do not fabricate workbook contents, expected results, API configuration, or test outcomes. Deliver the working implementation and the evidence that it works.**
