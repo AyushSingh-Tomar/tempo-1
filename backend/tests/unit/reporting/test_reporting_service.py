@@ -61,6 +61,15 @@ async def test_generate_reports_produces_real_artifacts(
     assert payload["financial_checks"]["total_findings"] >= 1
     assert payload["source"]["filename"] == "f.csv"
 
+    content, filename, content_type = await resolve_download(db_session, storage, run.id, "audit_report_human")
+    assert filename == "audit_report.txt"
+    assert content_type == "text/plain"
+    readable_report = content.decode("utf-8")
+    assert readable_report.startswith("Audit Report\n============")
+    assert "Run id:" in readable_report
+    assert "Financial checks:" in readable_report
+    assert "f.csv" in readable_report
+
 
 async def test_generate_reports_requires_correct_state(
     db_session: AsyncSession, storage: LocalStorageService, project: Project, user: User

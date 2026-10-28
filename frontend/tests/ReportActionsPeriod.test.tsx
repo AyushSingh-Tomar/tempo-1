@@ -20,6 +20,24 @@ function setup(onDownloadPeriod = vi.fn()) {
 }
 
 describe('ReportActions period download', () => {
+  it('offers JSON and human-readable audit report downloads', () => {
+    const onDownload = vi.fn();
+    render(
+      <ReportActions
+        run={run}
+        onGenerate={() => {}}
+        onDownload={onDownload}
+        generating={false}
+        downloading={null}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Download audit report (JSON)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Download human-readable audit report' }));
+    expect(onDownload).toHaveBeenNthCalledWith(1, 'audit_report');
+    expect(onDownload).toHaveBeenNthCalledWith(2, 'audit_report_human');
+  });
+
   it('sends the chosen year, quarter and date column', () => {
     const onDownloadPeriod = setup();
     fireEvent.change(screen.getByLabelText('Year'), { target: { value: '2024' } });

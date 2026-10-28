@@ -81,7 +81,7 @@ export interface ProcessingRun {
   artifacts?: RunArtifact[] | null;
 }
 
-export type ArtifactType = 'processed_file' | 'audit_report';
+export type ArtifactType = 'processed_file' | 'audit_report' | 'audit_report_human';
 
 export interface RunArtifact {
   artifact_type: ArtifactType | string;

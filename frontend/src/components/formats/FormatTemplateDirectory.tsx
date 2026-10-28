@@ -31,6 +31,7 @@ export function FormatTemplateDirectory() {
   const [editing, setEditing] = useState<FormatTemplate | 'new' | null>(null);
   const [toDelete, setToDelete] = useState<FormatTemplate | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   function startEditing(target: FormatTemplate | 'new') {
     save.reset();
@@ -118,26 +119,43 @@ export function FormatTemplateDirectory() {
                       </p>
                     </div>
                     {canWrite && (
-                      <div className="flex items-center gap-3 text-sm">
+                      <div className="relative flex items-center">
                         <button
                           type="button"
-                          aria-label={`Change format ${t.name}`}
-                          onClick={() => startEditing(t)}
-                          className="font-medium text-slate-700 underline hover:text-slate-900"
+                          aria-label={`Format actions for ${t.name}`}
+                          aria-expanded={menuOpenId === t.id}
+                          onClick={() => setMenuOpenId((current) => (current === t.id ? null : t.id))}
+                          className="flex h-full items-center px-3 text-lg font-bold text-slate-500 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
                         >
-                          Change
+                          ⋮
                         </button>
-                        <button
-                          type="button"
-                          aria-label={`Remove format ${t.name}`}
-                          onClick={() => {
-                            setDeleteError(null);
-                            setToDelete(t);
-                          }}
-                          className="font-medium text-red-700 underline hover:text-red-900"
-                        >
-                          Remove
-                        </button>
+                        {menuOpenId === t.id && (
+                          <div className="absolute right-2 top-full z-10 mt-1 min-w-40 rounded border border-slate-200 bg-white p-1 shadow-lg">
+                            <button
+                              type="button"
+                              aria-label={`Change format ${t.name}`}
+                              onClick={() => {
+                                startEditing(t);
+                                setMenuOpenId(null);
+                              }}
+                              className="block w-full rounded px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                            >
+                              Change
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`Remove format ${t.name}`}
+                              onClick={() => {
+                                setDeleteError(null);
+                                setToDelete(t);
+                                setMenuOpenId(null);
+                              }}
+                              className="block w-full rounded px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

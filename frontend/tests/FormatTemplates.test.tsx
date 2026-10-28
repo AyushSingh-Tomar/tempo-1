@@ -178,6 +178,7 @@ describe('FormatTemplateDirectory', () => {
     setAuthToken('dev-analyst1-analyst');
     const update = vi.spyOn(api.formats, 'update').mockResolvedValue(lloyds);
     renderWith(<FormatTemplateDirectory />);
+    fireEvent.click(await screen.findByRole('button', { name: "Format actions for Lloyd's Standard" }));
     fireEvent.click(await screen.findByRole('button', { name: "Change format Lloyd's Standard" }));
     fireEvent.change(screen.getByLabelText(/Format name/), { target: { value: 'Renamed' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -203,11 +204,13 @@ describe('FormatTemplateDirectory', () => {
     setAuthToken('dev-analyst1-analyst');
     const remove = vi.spyOn(api.formats, 'remove').mockResolvedValue({ id: 'f2', deleted: true });
     renderWith(<FormatTemplateDirectory />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Format actions for ACORD' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Remove format ACORD' }));
     const confirm = screen.getByRole('alertdialog', { name: 'Remove ACORD?' });
     expect(confirm).toHaveTextContent('keep their own copy');
     fireEvent.click(within(confirm).getByRole('button', { name: 'Keep it' }));
     expect(remove).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Format actions for ACORD' }));
     fireEvent.click(screen.getByRole('button', { name: 'Remove format ACORD' }));
     fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove format' }));
     await waitFor(() => expect(remove).toHaveBeenCalledWith('f2'));

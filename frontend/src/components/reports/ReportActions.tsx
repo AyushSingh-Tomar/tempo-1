@@ -27,13 +27,13 @@ export function ReportActions({
 }: {
   run: ProcessingRun | undefined;
   onGenerate: () => void;
-  onDownload: (type: 'processed_file' | 'audit_report') => void;
+  onDownload: (type: 'processed_file' | 'audit_report' | 'audit_report_human') => void;
   /** Creates (or reuses) the period extract and downloads it. */
   onDownloadPeriod?: (period: PeriodSelection) => void;
   extracts?: PeriodExtract[];
   onDownloadExtract?: (extract: PeriodExtract) => void;
   generating: boolean;
-  downloading: 'processed_file' | 'audit_report' | null;
+  downloading: 'processed_file' | 'audit_report' | 'audit_report_human' | null;
 }) {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [quarter, setQuarter] = useState('');
@@ -79,7 +79,15 @@ export function ReportActions({
           onClick={() => onDownload('audit_report')}
           className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {downloading === 'audit_report' ? 'Downloading...' : 'Download audit report'}
+          {downloading === 'audit_report' ? 'Downloading JSON...' : 'Download audit report (JSON)'}
+        </button>
+        <button
+          type="button"
+          disabled={!auditReady || downloading === 'audit_report_human'}
+          onClick={() => onDownload('audit_report_human')}
+          className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {downloading === 'audit_report_human' ? 'Downloading...' : 'Download human-readable audit report'}
         </button>
       </div>
       {onDownloadPeriod && (

@@ -7,3 +7,186 @@
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 API KEY : ""
+
+
+
+Do not hinder to any existing logic, there needs to be only one change in the project now, I would suggest to make another separate module for it, In the Discrepancies handling section, add a button, that in case if no row is following the rule, probably the name of the column needs to get changes in accordance to what it's values are exactly that, read these and as for now only handle these ::Each trap below is explained in three
+parts: the problem, how the engine detects it, and a worked example with real
+numbers.
+
+**5.1 MCR-D1 — Gross-is-actually-Ceded**
+
+**The problem.**
+A cedant sends a file where the "Gross Premium" column is **not**
+the gross premium at all — it is the portion that has already been ceded to the
+reinsurer. The two are related by the cession rate: ceded = gross × cess%. So
+in a file where cession is 40%, the "Gross Premium" column contains
+only 40% of the real gross. If the engine trusts the label, every subsequent
+calculation is wrong by a factor of ~2.5.
+
+**How the engine detects it.** Three signals must all be present:
+
+1. The column satisfies column ≈ G_implied × cess% — where
+     G_implied is the gross premium reconstructed from other evidence (sum
+     insured ratios, peer columns, or commission anchors).
+2. The column's ratio to Sum Insured is materially lower than
+     you'd expect from a true gross figure (because the ceded figure is
+     naturally smaller).
+3. The column does **not** satisfy G − C − T ≈ N on a
+     full-value basis — because it isn't the full value.
+
+**Decision.**
+Resolve the column as ceded_premium and flag it as a meaning conflict so a
+reviewer confirms before the file proceeds.
+
+**Evidence output (what the user sees).** *"Column equals cess% of the implied gross in X% of rows and
+is far below Sum Insured versus peer gross columns — it is the ceded share, not
+the full gross."*
+
+**Dependency.**
+Requires the cession rate (cess%) to be known.
+
+**Worked example.** Prem column = 4,000. Sum Insured = 1,000,000. Comm column = 1,000.
+Treaty: cess% = 40%, comm% = 25%. If Prem were genuinely gross, we'd expect
+something closer to Sum Insured × rate, where typical rates on this risk class
+produce gross around 10,000. The implied gross is therefore 10,000.
+
+- MCR-B4: 4,000 ≈ 10,000 × 40% ✔ — Prem behaves like a ceded figure.
+- MCR-B5: 1,000 ≈ 4,000 × 25% ✔ — commission is 25% of Prem, consistent with commission computed
+     on the ceded basis.
+- Prem / SI is far below the ratio seen on peer gross columns ✔.
+- MCR-A1 on full-value basis: 4,000 − 1,000 − ... = N fails
+     because 4,000 isn't the full value ✔.
+- **Result:** Prem resolved as
+     ceded_premium; meaning conflict flagged.
+
+**5.2 MCR-D2 —
+Commission-bundles-Brokerage**
+
+**The problem.**
+A cedant sends a file where the "Commission" column secretly contains
+both ceding commission **and** brokerage lumped together into a single
+figure. The label says "Commission" but the number is really
+commission + brokerage. If the engine trusts the label and then also tries to
+deduct brokerage separately (perhaps from a brokerage% treaty figure), it
+double-counts.
+
+**How the engine detects it.** Two signals:
+
+1. The column satisfies column ≈ G × (comm% + brok%) — the
+     combined rate.
+2. The column does **not** satisfy column ≈ G × comm% alone —
+     the pure commission rate.
+
+**Decision.**
+Identify the column as commission_plus_brokerage (combined) and flag it. This
+prevents the engine from subtracting brokerage a second time.
+
+**Evidence output.** *"Column equals comm% + brok% of gross, exceeding commission
+alone — it bundles commission and brokerage."*
+
+**Dependency.**
+Requires both the commission rate and the brokerage rate.
+
+**Worked example.** Comm column = 3,000. Gross = 10,000. Treaty: comm% = 17.5%, brok% =
+5%.
+
+- MCR-B1 (pure commission): 3,000 ≈ 10,000 × 17.5% = 1,750 ✖ — fails by nearly 2×.
+- MCR-D2 (bundled): 3,000 ≈ 10,000 × (17.5% + 5%) = 2,250 —
+     closer, but the file consistently shows 3,000 ≈ 10,000 × 22.5% × 1.33?
+     Let's take the cleaner numeric case: if comm% + brok% = 30% and Gross =
+     10,000, then 3,000 ≈ 10,000 × 30% ✔.
+- **Result:** resolved as
+     commission_plus_brokerage; flagged.
+
+**5.3 MCR-D3 — Ambiguous Net (partial net
+vs true net)**
+
+**The problem.**
+The word "Net" is overloaded. In some files it means gross minus
+commission only (tax has not been removed yet). In others it means gross minus
+commission minus tax (the true, fully-netted figure). If both are present in
+the same file under similar labels — e.g., "Net Premium" and
+"Net Due" — the engine must assign the right meaning to each.
+
+**How the engine detects it.**
+
+- If a column satisfies column ≈ G − C but **not** G − C − T,
+     it is a partial net (net-of-commission-only).
+- If a column satisfies column ≈ G − C − T, it is a true net
+     premium.
+- If both types of column are present in the same file, each is
+     resolved to its matching identity.
+- If only a single "Net" column is present and tax = 0
+     (so A1 and A3 both pass), the column is genuinely ambiguous — flag it
+     rather than guessing.
+
+**Decision.**
+Assign net_of_commission or net_premium per the matching identity. If
+undecidable, flag ambiguous.
+
+**Evidence output.** *"This 'Net' equals gross − commission only; the true net
+(gross − commission − tax) is column Y."*
+
+**Dependency.**
+Requires the tax rate to distinguish between the two meanings.
+
+**Worked example.** Net column = 7,500 and Net Due column = 6,300. Gross = 10,000, Comm
+= 2,500, Tax = 1,200.
+
+- MCR-A3 on Net: 7,500 ≈ 10,000 − 2,500 ✔ → partial net
+- MCR-A1 on Net Due: 6,300 ≈ 10,000 − 2,500 − 1,200 ✔ → true net
+- **Result:** Net → net_of_commission,
+     Net Due → net_premium. Both resolved cleanly.
+
+If only Net = 7,500 existed and Tax = 0,
+both A1 and A3 would hold (since removing a zero makes no difference), and
+MCR-E4 would flag the column as ambiguous.
+
+**5.4 MCR-D4 — Guard Against Out-of-Scope
+"Net"**
+
+**The problem.**
+Some files use "Net" to mean something entirely outside the premium
+model — for example, "net of claims recoveries" or "net of
+reinsurance recoveries." These are claims-side concepts, not premium-side
+concepts. The engine must not try to force a premium meaning onto them.
+
+**How the engine detects it.** If a "Net"-labelled column fails to satisfy any of the
+Category A deduction identities (A1 through A5), the engine does not try to
+assign it a premium meaning.
+
+**Decision.**
+Flag as ambiguous and route to review. The user confirms what the column
+actually represents.
+
+**Purpose.**
+Prevents the engine from producing false-confident outputs on columns it
+doesn't actually understand.
+
+**5.5 MCR-D5 — Our-Share Labelled as 100%**
+
+**The problem.**
+A column is labelled "Gross Premium (100%)" — implying it contains
+the full premium at 100% basis — but the values are actually the our-share
+version (already scaled down by order%). This is a common error when a cedant
+copies figures from the wrong column of their internal system.
+
+**How the engine detects it.** The column satisfies column ≈ another_gross_column × order% (i.e.,
+MCR-C1) — meaning it is behaving as the our-share version of a larger column,
+despite being labelled as the 100% version.
+
+**Decision.**
+Resolve as the our-share version; flag the label as misleading.
+
+**Dependency.**
+Requires the order% to be known.
+
+**Worked example.** GWP (100%) column = 20,000. Another column labelled GWP (Our) =
+20,000. Treaty: order% = 20%. The two columns are identical values, both
+labelled gross — but the file also has Sum Insured = 1,000,000 with typical
+rates implying a true gross around 100,000. MCR-C1 confirms that both columns
+are the our-share figure (20,000 ≈ 100,000 × 20%), so the one labelled
+"100%" is mislabelled. :: 
+
+For this provide a section in ui following the current pattern of Ui, and in the Review discrepencies section after the list of money column rules suggest these renamings, now if chosen for re naming, the Discrepency table they should be revised.(add a new module of revised discrepency instead of chaning in the current one, and display it separately) do not make changes in the current flow. and beside the "Override discrepancy" button also add "rename the column as suggested" which will open a popup screen showing the same "list of money column rules suggest these renamings," . make a completely different module for this new feature without interfering in the current project.

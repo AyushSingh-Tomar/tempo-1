@@ -44,6 +44,40 @@ def _audit_report_path(run_id: UUID) -> str:
     return f"runs/{run_id}/reports/audit_report.json"
 
 
+def _humanize_audit_value(label: str, value: Any, depth: int = 0) -> list[str]:
+    indent = "  " * depth
+    title = label.replace("_", " ").capitalize()
+    if isinstance(value, dict):
+        if not value:
+            return [f"{indent}{title}: None"]
+        lines = [f"{indent}{title}:"]
+        for key, child in value.items():
+            lines.extend(_humanize_audit_value(key, child, depth + 1))
+        return lines
+    if isinstance(value, list):
+        if not value:
+            return [f"{indent}{title}: None"]
+        lines = [f"{indent}{title}:"]
+        for item in value:
+            if isinstance(item, dict):
+                lines.append(f"{'  ' * (depth + 1)}-")
+                for key, child in item.items():
+                    lines.extend(_humanize_audit_value(key, child, depth + 2))
+            else:
+                rendered = "Not available" if item is None else str(item)
+                lines.append(f"{'  ' * (depth + 1)}- {rendered}")
+        return lines
+    rendered = "Not available" if value is None else str(value)
+    return [f"{indent}{title}: {rendered}"]
+
+
+def _format_audit_report_text(payload: dict[str, Any]) -> bytes:
+    lines = ["Audit Report", "============"]
+    for key, value in payload.items():
+        lines.extend(["", *_humanize_audit_value(key, value)])
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
 async def _build_processed_file_csv(storage: StorageService, run_id: UUID, treaty: TreatyFigures | None = None) -> bytes:
     dataset = await load_standardized_dataset(storage, run_id)
     fields = dataset["fields"]
@@ -245,8 +279,11 @@ async def resolve_download(
     the artifact rows (never a raw path from the client). Raises
     ``NotFoundError`` both for an unknown run and for a run with no such
     artifact yet - never leaks which case it was."""
-    if artifact_type not in ARTIFACT_TYPES:
-        raise ValidationError(f"Unknown artifact_type '{artifact_type}'", details={"allowed": list(ARTIFACT_TYPES)})
+    if artifact_type not in (*ARTIFACT_TYPES, "audit_report_human"):
+        raise ValidationError(
+            f"Unknown artifact_type '{artifact_type}'",
+            details={"allowed": [*ARTIFACT_TYPES, "audit_report_human"]},
+        )
 
     run = await db.get(ProcessingRun, run_id)
     if run is None:
@@ -260,14 +297,22 @@ async def resolve_download(
     else:
         stmt = select(AuditReportArtifact).where(AuditReportArtifact.run_id == run_id)
         model_cls = AuditReportArtifact
-        filename = "audit_report.json"
-        content_type = "application/json"
+        filename = "audit_report.json" if artifact_type == "audit_report" else "audit_report.txt"
+        content_type = "application/json" if artifact_type == "audit_report" else "text/plain"
 
     artifact = (await db.execute(stmt.order_by(model_cls.generated_at.desc()))).scalars().first()
     if artifact is None:
         raise NotFoundError("Artifact not found")
 
     content = await storage.download(artifact.storage_path)
+    if artifact_type == "audit_report_human":
+        try:
+            payload = json.loads(content)
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise StorageError("Stored audit report is not valid JSON") from exc
+        if not isinstance(payload, dict):
+            raise StorageError("Stored audit report has an invalid structure")
+        content = _format_audit_report_text(payload)
     return content, filename, content_type
 
 

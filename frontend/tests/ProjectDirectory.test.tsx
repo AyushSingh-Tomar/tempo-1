@@ -3,10 +3,12 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProjectDirectory } from '../src/components/projects/ProjectDirectory';
+import { ArchivedProjectDirectory } from '../src/components/projects/ArchivedProjectDirectory';
 import { ProjectListPage } from '../src/pages/ProjectListPage';
 import { api } from '../src/api/endpoints';
 import { ApiError } from '../src/api/errors';
 import { setAuthToken } from '../src/stores/devAuth';
+import { archiveProject } from '../src/stores/archivedProjects';
 import type { Project } from '../src/api/types';
 
 const projects: Project[] = [
@@ -136,5 +138,27 @@ describe('ProjectListPage', () => {
     expect(screen.getByRole('heading', { name: 'Final formats' })).toBeInTheDocument();
     expect(await screen.findByText('Q3 2026 Bordereaux')).toBeInTheDocument();
     expect(await screen.findByText('No saved formats yet')).toBeInTheDocument();
+  });
+});
+
+describe('ArchivedProjectDirectory', () => {
+  it('groups restore and delete actions in the project actions menu', async () => {
+    archiveProject(projects[0]);
+    renderWith(<ArchivedProjectDirectory />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Archived project actions for Q3 2026 Bordereaux' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+
+    await waitFor(() => expect(screen.queryByText('Q3 2026 Bordereaux')).not.toBeInTheDocument());
+  });
+
+  it('deletes an archived project from its actions menu', async () => {
+    archiveProject(projects[0]);
+    renderWith(<ArchivedProjectDirectory />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Archived project actions for Q3 2026 Bordereaux' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(screen.queryByText('Q3 2026 Bordereaux')).not.toBeInTheDocument());
   });
 });

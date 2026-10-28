@@ -146,7 +146,7 @@ export function MoneyRelationsEditor({ run }: { run: ProcessingRun }) {
       {/* ---- declared relations */}
       <section aria-labelledby="declared-heading" className="space-y-2">
         <h3 id="declared-heading" className="text-sm font-semibold text-slate-800">
-          Declared relations ({relations.length})
+          Declared Money Column Rules ({relations.length})
         </h3>
         {relations.length === 0 ? (
           <p className="rounded border border-dashed border-slate-300 p-3 text-sm text-slate-500">
@@ -232,10 +232,11 @@ export function MoneyRelationsEditor({ run }: { run: ProcessingRun }) {
               setEditing('new');
             }}
           >
-            + Declare a relation
+            + Declare a Money Column Rule
           </button>
           <button type="button" className={BTN} onClick={() => standard.mutate()} disabled={standard.isPending}>
-            {standard.isPending ? 'Adding...' : 'Add standard relations'}
+            {/* {standard.isPending ? 'Adding...' : 'Add standard Money Column Rules'} */}
+            {standard.isPending ? 'Viewing...' : 'View standard Money Column Rules'}
           </button>
           <button
             type="button"

@@ -447,7 +447,11 @@ export const api = {
     download: (runId: string, artifactType: ArtifactType) =>
       downloadFile(
         `/processing-runs/${enc(runId)}/download/${enc(artifactType)}`,
-        artifactType === 'processed_file' ? `processed_${runId}.csv` : `audit_report_${runId}.json`,
+        artifactType === 'processed_file'
+          ? `processed_${runId}.csv`
+          : artifactType === 'audit_report'
+            ? `audit_report_${runId}.json`
+            : `audit_report_${runId}.txt`,
       ),
     /** Cuts the processed file to a year or quarter and stores it as an immutable version. Month-only dates in the period are included. */
     createPeriodExtract: (runId: string, period: { year: number; quarter?: number; field: string }) =>

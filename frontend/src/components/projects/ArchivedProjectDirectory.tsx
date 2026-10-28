@@ -17,6 +17,7 @@ function formatDate(iso: string | undefined): string {
 export function ArchivedProjectDirectory() {
   const [tick, setTick] = useState(0);
   const [query, setQuery] = useState('');
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = listenForArchivedProjectChanges(() => setTick((value) => value + 1));
@@ -33,11 +34,13 @@ export function ArchivedProjectDirectory() {
 
   function handleRestore(project: Project) {
     restoreArchivedProject(project.id);
+    setMenuOpenId(null);
     setTick((value) => value + 1);
   }
 
   function handleDelete(project: Project) {
     deleteArchivedProject(project.id);
+    setMenuOpenId(null);
     setTick((value) => value + 1);
   }
 
@@ -95,21 +98,34 @@ export function ArchivedProjectDirectory() {
                         {p.description && <p className="text-sm text-slate-500">{p.description}</p>}
                         {p.created_at && <p className="mt-0.5 text-xs text-slate-400">Archived {formatDate(p.created_at)}</p>}
                       </div>
-                      <div className="flex items-center gap-2 pr-3">
+                      <div className="relative flex items-center">
                         <button
                           type="button"
-                          onClick={() => handleRestore(p)}
-                          className="text-sm font-medium text-slate-700 underline hover:text-slate-900"
+                          aria-label={`Archived project actions for ${p.name}`}
+                          aria-expanded={menuOpenId === p.id}
+                          onClick={() => setMenuOpenId((current) => (current === p.id ? null : p.id))}
+                          className="flex h-full items-center px-3 text-lg font-bold text-slate-500 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
                         >
-                          Restore
+                          ⋮
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(p)}
-                          className="text-sm font-medium text-red-700 underline hover:text-red-900"
-                        >
-                          Delete
-                        </button>
+                        {menuOpenId === p.id && (
+                          <div className="absolute right-2 top-full z-10 mt-1 min-w-40 rounded border border-slate-200 bg-white p-1 shadow-lg">
+                            <button
+                              type="button"
+                              onClick={() => handleRestore(p)}
+                              className="block w-full rounded px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                            >
+                              Restore
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(p)}
+                              className="block w-full rounded px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </li>
                   ))}
